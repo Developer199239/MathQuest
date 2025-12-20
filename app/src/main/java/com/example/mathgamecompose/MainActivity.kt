@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -21,21 +22,22 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MathGameComposeTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { _ ->
-                    MyNavigation()
+                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                    MyNavigation(modifier = Modifier.padding(innerPadding))
                 }
             }
         }
     }
 
     @Composable
-    fun MyNavigation() {
+    fun MyNavigation(modifier: Modifier = Modifier) {
 
         val navController = rememberNavController()
 
         NavHost(
             navController = navController,
-            startDestination = "HomePage"
+            startDestination = "HomePage",
+//            modifier = modifier
         ) {
 
             composable(
@@ -45,25 +47,31 @@ class MainActivity : ComponentActivity() {
             }
 
             composable(
-                route = "GamePage/{category}",
+                route = "GamePage/{category}/{difficulty}",
                 arguments = listOf(
-                    navArgument("category"){type = NavType.StringType}
+                    navArgument("category") { type = NavType.StringType },
+                    navArgument("difficulty") { type = NavType.StringType }
                 )
-            ){
-                val selectedCategory = it.arguments?.getString("category")
+            ) { backStackEntry ->
+                val category = backStackEntry.arguments?.getString("category")
+                val difficulty = backStackEntry.arguments?.getString("difficulty")
 
-                selectedCategory?.let { category ->
-                    GamePage(navController = navController, category = category)
+                if (category != null && difficulty != null) {
+                    GamePage(
+                        navController = navController,
+                        category = category,
+                        difficulty = difficulty
+                    )
                 }
             }
 
             composable(
                 route = "ResultPage/{score}",
                 arguments = listOf(
-                    navArgument("score"){type = NavType.IntType}
+                    navArgument("score") { type = NavType.IntType }
                 )
-            ){
-                val userScore = it.arguments?.getInt("score")
+            ) { backStackEntry ->
+                val userScore = backStackEntry.arguments?.getInt("score")
                 userScore?.let { score ->
                     ResultPage(navController = navController, score = score)
                 }

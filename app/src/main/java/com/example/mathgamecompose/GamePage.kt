@@ -1,7 +1,6 @@
 package com.example.mathgamecompose
 
 import android.os.CountDownTimer
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -46,7 +45,7 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GamePage(navController: NavController, category: String) {
+fun GamePage(navController: NavController, category: String, difficulty: String) {
     val systemUiController = rememberSystemUiController()
     val greenColor = colorResource(id = R.color.green)
     systemUiController.setStatusBarColor(color = greenColor)
@@ -84,7 +83,7 @@ fun GamePage(navController: NavController, category: String) {
     }
 
     LaunchedEffect(key1 = category, block = {
-        val (question, answer) = generateQuestion(category)
+        val (question, answer) = generateQuestion(category, difficulty)
         myQuestion.value = question
         correctAnswer.value = answer
     })
@@ -207,7 +206,7 @@ fun GamePage(navController: NavController, category: String) {
                                 popUpTo("HomePage") { inclusive = false }
                             }
                         } else {
-                            val (question, answer) = generateQuestion(category)
+                            val (question, answer) = generateQuestion(category, difficulty)
                             myQuestion.value = question
                             correctAnswer.value = answer
                             myAnswer.value = ""

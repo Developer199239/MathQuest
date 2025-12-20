@@ -2,10 +2,24 @@ package com.example.mathgamecompose
 
 import kotlin.random.Random
 
-fun generateQuestion(selectedCategory: String): Pair<String, Int> {
+fun generateQuestion(selectedCategory: String, difficulty: String?): Pair<String, Int> {
 
-    var number1 = Random.nextInt(0, 100)
-    var number2 = Random.nextInt(0, 100)
+    val range = when (difficulty) {
+        "Easy" -> 0..20
+        "Medium" -> 0..100
+        "Hard" -> 0..500
+        else -> 0..100
+    }
+
+    val multiRange = when (difficulty) {
+        "Easy" -> 0..10
+        "Medium" -> 0..15
+        "Hard" -> 0..30
+        else -> 0..15
+    }
+
+    var number1 = Random.nextInt(range.first, range.last + 1)
+    var number2 = Random.nextInt(range.first, range.last + 1)
 
     val textQuestion: String
     val correctAnswer: Int
@@ -25,24 +39,21 @@ fun generateQuestion(selectedCategory: String): Pair<String, Int> {
             }
         }
         "multi" -> {
-            number1 = Random.nextInt(0, 16)
-            number2 = Random.nextInt(0, 16)
+            number1 = Random.nextInt(multiRange.first, multiRange.last + 1)
+            number2 = Random.nextInt(multiRange.first, multiRange.last + 1)
             textQuestion = "$number1 * $number2"
             correctAnswer = number1 * number2
         }
-        else -> {
-            if (number1 == 0 || number2 == 0) {
-                textQuestion = "0 / 1"
-                correctAnswer = 0
-            } else if (number1 >= number2) {
-                val newBigNumber = number1 - (number1 % number2)
-                textQuestion = "$newBigNumber / $number2"
-                correctAnswer = newBigNumber / number2
-            } else {
-                val newBigNumber = number2 - (number2 % number1)
-                textQuestion = "$newBigNumber / $number1"
-                correctAnswer = newBigNumber / number1
-            }
+        else -> { // Division
+            // Generate a divisor first
+            val divisor = Random.nextInt(multiRange.first.coerceAtLeast(1), multiRange.last + 1)
+            // Generate a quotient (correctAnswer)
+            val quotient = Random.nextInt(multiRange.first, multiRange.last + 1)
+            // Calculate the dividend
+            val dividend = divisor * quotient
+            
+            textQuestion = "$dividend / $divisor"
+            correctAnswer = quotient
         }
     }
 
