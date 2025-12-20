@@ -31,9 +31,7 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     fun MyNavigation(modifier: Modifier = Modifier) {
-
         val navController = rememberNavController()
-
         NavHost(
             navController = navController,
             startDestination = "HomePage",
@@ -44,6 +42,12 @@ class MainActivity : ComponentActivity() {
                 route = "HomePage"
             ) {
                 HomePage(navController = navController)
+            }
+
+            composable(
+                route = "HistoryPage"
+            ) {
+                HistoryPage(navController = navController)
             }
 
             composable(
