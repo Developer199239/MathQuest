@@ -32,13 +32,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -61,9 +58,11 @@ fun GamePage(navController: NavController, category: String) {
     val remainingTimeText = remember { mutableStateOf("30") }
     val myQuestion = remember { mutableStateOf("") }
     val myAnswer = remember { mutableStateOf("") }
-    val isEnabled = remember { mutableStateOf(true) }
+    val isOkEnabled = remember { mutableStateOf(true) }
+    val isNextEnabled = remember { mutableStateOf(false) }
     val correctAnswer = remember { mutableStateOf(0) }
     val totalTimeInMillis = remember { mutableStateOf(30000L) }
+    
     val timer = remember {
         mutableStateOf(
             object : CountDownTimer(totalTimeInMillis.value, 1000) {
@@ -76,19 +75,18 @@ fun GamePage(navController: NavController, category: String) {
                     cancel()
                     myQuestion.value = "Sorry, Time is up!"
                     life.value -= 1
-                    isEnabled.value = false
-
+                    isOkEnabled.value = false
+                    isNextEnabled.value = true
                 }
 
             }.start()
         )
     }
-    LaunchedEffect(key1 = "math", block = {
-        val resultList = generateQuestion(category)
-        myQuestion.value = resultList[0].toString()
-        correctAnswer.value = resultList[1].toString().toInt()
-        Log.d("question", myQuestion.value)
 
+    LaunchedEffect(key1 = category, block = {
+        val (question, answer) = generateQuestion(category)
+        myQuestion.value = question
+        correctAnswer.value = answer
     })
 
     Scaffold(
@@ -101,13 +99,11 @@ fun GamePage(navController: NavController, category: String) {
                 },
                 title = {
                     Text(
-                        text =
-                        when (category) {
+                        text = when (category) {
                             "add" -> "Addition"
                             "sub" -> "Subtraction"
                             "multi" -> "Multiplication"
                             else -> "Division"
-
                         },
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold
@@ -134,16 +130,11 @@ fun GamePage(navController: NavController, category: String) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-//                .background(backgroundGradient),
-                .paint(
-                    painter = painterResource(id = R.drawable.game_bg),
-                    contentScale = ContentScale.FillBounds
-                ),
+                .background(backgroundGradient),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Stats Row
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -158,7 +149,6 @@ fun GamePage(navController: NavController, category: String) {
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            // Question Glass Card
             Box(
                 modifier = Modifier
                     .size(320.dp, 120.dp)
@@ -179,12 +169,10 @@ fun GamePage(navController: NavController, category: String) {
 
             Spacer(modifier = Modifier.height(30.dp))
 
-            // Rounded Input
             TextFieldForAnswer(text = myAnswer)
 
             Spacer(modifier = Modifier.height(50.dp))
 
-            // Rounded Shadowed Buttons
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
@@ -194,46 +182,42 @@ fun GamePage(navController: NavController, category: String) {
                     buttonText = "OK",
                     myOnClick = {
                         if (myAnswer.value.isEmpty()) {
-                            Toast.makeText(
-                                myContext,
-                                "Write an answer or click the Next button",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            Toast.makeText(myContext, "Enter an answer!", Toast.LENGTH_SHORT).show()
                         } else {
                             timer.value.cancel()
-                            isEnabled.value = false
+                            isOkEnabled.value = false
+                            isNextEnabled.value = true
                             if (myAnswer.value.toInt() == correctAnswer.value) {
                                 score.value += 10
-                                myQuestion.value = "Congratulations!"
-                                myAnswer.value = ""
+                                myQuestion.value = "Correct!"
                             } else {
                                 life.value -= 1
-                                myQuestion.value = "Wrong answer!"
+                                myQuestion.value = "Wrong! Ans: ${correctAnswer.value}"
                             }
                         }
                     },
-                    isEnabled = isEnabled.value
+                    isEnabled = isOkEnabled.value
                 )
 
                 ButtonOkNext(
                     buttonText = "NEXT",
                     myOnClick = {
-                        timer.value.cancel()
-                        timer.value.start()
-                        if (life.value == 0) {
-                            Toast.makeText(myContext, "Game Over", Toast.LENGTH_SHORT).show()
+                        if (life.value <= 0) {
                             navController.navigate("ResultPage/${score.value}") {
-                                popUpTo("FirstPage") { inclusive = false }
+                                popUpTo("HomePage") { inclusive = false }
                             }
                         } else {
-                            val newResultList = generateQuestion(category)
-                            myQuestion.value = newResultList[0].toString()
-                            correctAnswer.value = newResultList[1].toString().toInt()
+                            val (question, answer) = generateQuestion(category)
+                            myQuestion.value = question
+                            correctAnswer.value = answer
                             myAnswer.value = ""
-                            isEnabled.value = true
+                            isOkEnabled.value = true
+                            isNextEnabled.value = false
+                            timer.value.cancel()
+                            timer.value.start()
                         }
                     },
-                    isEnabled = true
+                    isEnabled = isNextEnabled.value
                 )
             }
         }

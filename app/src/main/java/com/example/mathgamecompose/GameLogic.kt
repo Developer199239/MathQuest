@@ -2,73 +2,49 @@ package com.example.mathgamecompose
 
 import kotlin.random.Random
 
-fun generateQuestion(selectedCategory : String) : ArrayList<Any>{
+fun generateQuestion(selectedCategory: String): Pair<String, Int> {
 
-    var number1 = Random.nextInt(0,100)
-    var number2 = Random.nextInt(0,100)
+    var number1 = Random.nextInt(0, 100)
+    var number2 = Random.nextInt(0, 100)
 
-    val textQuestion : String
-    val correctAnswer : Int
+    val textQuestion: String
+    val correctAnswer: Int
 
-    when(selectedCategory){
-
+    when (selectedCategory) {
         "add" -> {
             textQuestion = "$number1 + $number2"
             correctAnswer = number1 + number2
         }
         "sub" -> {
-            if (number1 >= number2){
-
+            if (number1 >= number2) {
                 textQuestion = "$number1 - $number2"
                 correctAnswer = number1 - number2
-
-            }else{
-
+            } else {
                 textQuestion = "$number2 - $number1"
                 correctAnswer = number2 - number1
-
             }
         }
-
         "multi" -> {
-
-            number1 = Random.nextInt(0,16)
-            number2 = Random.nextInt(0,16)
-
+            number1 = Random.nextInt(0, 16)
+            number2 = Random.nextInt(0, 16)
             textQuestion = "$number1 * $number2"
             correctAnswer = number1 * number2
-
         }
-
         else -> {
-
-            if (number1 == 0 || number2 == 0){
-
+            if (number1 == 0 || number2 == 0) {
                 textQuestion = "0 / 1"
-                correctAnswer = 0    // 15 % 7 = 1 --> 15 - 1 = 14 --> 14 / 7 = 2
-
-            }else if (number1 >= number2){
-
+                correctAnswer = 0
+            } else if (number1 >= number2) {
                 val newBigNumber = number1 - (number1 % number2)
                 textQuestion = "$newBigNumber / $number2"
                 correctAnswer = newBigNumber / number2
-
-            }else{
-
+            } else {
                 val newBigNumber = number2 - (number2 % number1)
                 textQuestion = "$newBigNumber / $number1"
                 correctAnswer = newBigNumber / number1
-
             }
-
         }
-
     }
 
-    val gameResultList = ArrayList<Any>()
-    gameResultList.add(textQuestion)
-    gameResultList.add(correctAnswer)
-
-    return gameResultList
-
+    return Pair(textQuestion, correctAnswer)
 }
