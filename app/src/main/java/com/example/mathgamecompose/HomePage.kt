@@ -1,5 +1,6 @@
 package com.example.mathgamecompose
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -31,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -45,7 +47,14 @@ fun HomePage(navController: NavController) {
     val greenColor = colorResource(id = R.color.green)
     systemUiController.setStatusBarColor(color = greenColor)
 
-    var selectedDifficulty by remember { mutableStateOf("Easy") }
+    val context = LocalContext.current
+    val sharedPreferences = remember {
+        context.getSharedPreferences("MathGamePrefs", Context.MODE_PRIVATE)
+    }
+
+    var selectedDifficulty by remember {
+        mutableStateOf(sharedPreferences.getString("difficulty", "Easy") ?: "Easy")
+    }
 
     Scaffold(
         topBar = {
@@ -99,9 +108,18 @@ fun HomePage(navController: NavController) {
                     .padding(horizontal = 24.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally)
             ) {
-                DifficultyChip("Easy", selectedDifficulty == "Easy") { selectedDifficulty = "Easy" }
-                DifficultyChip("Medium", selectedDifficulty == "Medium") { selectedDifficulty = "Medium" }
-                DifficultyChip("Hard", selectedDifficulty == "Hard") { selectedDifficulty = "Hard" }
+                DifficultyChip("Easy", selectedDifficulty == "Easy") {
+                    selectedDifficulty = "Easy"
+                    sharedPreferences.edit().putString("difficulty", "Easy").apply()
+                }
+                DifficultyChip("Medium", selectedDifficulty == "Medium") {
+                    selectedDifficulty = "Medium"
+                    sharedPreferences.edit().putString("difficulty", "Medium").apply()
+                }
+                DifficultyChip("Hard", selectedDifficulty == "Hard") {
+                    selectedDifficulty = "Hard"
+                    sharedPreferences.edit().putString("difficulty", "Hard").apply()
+                }
             }
 
             Spacer(modifier = Modifier.height(48.dp))
