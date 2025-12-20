@@ -1,6 +1,7 @@
 package com.example.mathgamecompose
 
 import android.app.Activity
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +22,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.paint
@@ -34,6 +37,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun ResultPage(navController: NavController, score: Int) {
@@ -42,7 +48,39 @@ fun ResultPage(navController: NavController, score: Int) {
     val iceBlue = colorResource(id = R.color.ice_blue)
     systemUIController.setStatusBarColor(color = iceBlue)
 
-    val myContext = LocalContext.current as Activity
+    val context = LocalContext.current
+    val myContext = context as Activity
+
+    val sharedPreferences = remember {
+        context.getSharedPreferences("MathGamePrefs", Context.MODE_PRIVATE)
+    }
+
+    LaunchedEffect(Unit) {
+        val difficulty = sharedPreferences.getString("difficulty", "Easy") ?: "Easy"
+        
+        // Save Max Score
+        val currentMax = sharedPreferences.getInt("max_$difficulty", 0)
+        if (score > currentMax) {
+            sharedPreferences.edit().putInt("max_$difficulty", score).apply()
+        }
+
+        // Save History
+        val historySet = sharedPreferences.getStringSet("game_history", mutableSetOf())?.toMutableSet() ?: mutableSetOf()
+        val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+        val currentDate = sdf.format(Date())
+        
+        // Format: "date|score|difficulty"
+        historySet.add("$currentDate|$score|$difficulty")
+        
+        // Keep only last 20 records
+        val updatedHistory = if (historySet.size > 20) {
+            historySet.toList().sortedByDescending { it.split("|")[0] }.take(20).toSet()
+        } else {
+            historySet
+        }
+        
+        sharedPreferences.edit().putStringSet("game_history", updatedHistory).apply()
+    }
 
     Box(
         modifier = Modifier

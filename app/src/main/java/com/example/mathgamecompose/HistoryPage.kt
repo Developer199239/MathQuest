@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -57,7 +58,6 @@ fun HistoryPage(navController: NavController) {
     val mediumMax = sharedPreferences.getInt("max_Medium", 0)
     val hardMax = sharedPreferences.getInt("max_Hard", 0)
 
-    // Using a simple string format "date|score|difficulty" stored in a Set
     val historySet = sharedPreferences.getStringSet("game_history", emptySet()) ?: emptySet()
     val historyList = historySet.map {
         val parts = it.split("|")
@@ -86,11 +86,11 @@ fun HistoryPage(navController: NavController) {
             )
         }
     ) { paddingValues ->
+        // Modern Dark Background with Gradient
         val backgroundGradient = Brush.verticalGradient(
             colors = listOf(
-                greenColor.copy(alpha = 0.1f),
-                colorResource(id = R.color.ice_blue).copy(alpha = 0.2f),
-                Color.White
+                Color(0xFF1A262D),
+                Color(0xFF263238)
             )
         )
 
@@ -102,65 +102,95 @@ fun HistoryPage(navController: NavController) {
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Max Scores Card
+            // Max Scores Card with dark theme
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.8f)),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.15f)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(modifier = Modifier.padding(20.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(text = "🏆", fontSize = 24.sp)
-                        Spacer(modifier = Modifier.size(8.dp))
-                        Text(text = "Max Scores", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                        Text(text = "🏆", fontSize = 28.sp)
+                        Spacer(modifier = Modifier.size(12.dp))
+                        Text(
+                            text = "Max Scores",
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White.copy(alpha = 0.9f)
+                        )
                     }
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
                     MaxScoreRow("Easy", easyMax, Color(0xFF4CAF50))
                     MaxScoreRow("Medium", mediumMax, Color(0xFFFF9800))
                     MaxScoreRow("Hard", hardMax, Color(0xFFF44336))
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             Text(
                 text = "Recent Games",
-                fontSize = 18.sp,
+                fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.DarkGray,
-                modifier = Modifier.align(Alignment.Start)
+                color = Color.White.copy(alpha = 0.6f),
+                modifier = Modifier.align(Alignment.Start).padding(start = 4.dp)
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
+            // History List with Modern Gradient Overlay
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.White.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
-                    .padding(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color.White.withAlpha(0.1f),
+                                Color.White.withAlpha(0.05f)
+                            )
+                        ),
+                        shape = RoundedCornerShape(24.dp)
+                    )
+                    .padding(vertical = 8.dp),
+                verticalArrangement = Arrangement.Top
             ) {
                 items(historyList) { record ->
                     HistoryItem(record)
-                    HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 20.dp),
+                        color = Color.White.copy(alpha = 0.1f)
+                    )
                 }
             }
         }
     }
 }
 
+// Extension to mimic withAlpha if not available directly on Color
+fun Color.withAlpha(alpha: Float): Color = this.copy(alpha = alpha)
+
 @Composable
 fun MaxScoreRow(difficulty: String, score: Int, indicatorColor: Color) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = "$difficulty:", fontSize = 16.sp, fontWeight = FontWeight.Medium)
+        Text(
+            text = "$difficulty:",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Medium,
+            color = Color.White.copy(alpha = 0.7f)
+        )
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(text = score.toString(), fontSize = 16.sp, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.size(8.dp))
+            Text(
+                text = score.toString(),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color.White
+            )
+            Spacer(modifier = Modifier.size(12.dp))
             Box(modifier = Modifier.size(12.dp).background(indicatorColor, RoundedCornerShape(6.dp)))
         }
     }
@@ -169,22 +199,42 @@ fun MaxScoreRow(difficulty: String, score: Int, indicatorColor: Color) {
 @Composable
 fun HistoryItem(record: GameRecord) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp, horizontal = 4.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 12.dp, horizontal = 20.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = record.date, fontSize = 14.sp, color = Color.Gray)
-        Text(text = "Score: ${record.score}", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = record.date,
+                fontSize = 13.sp,
+                color = Color.White.copy(alpha = 0.4f),
+                fontWeight = FontWeight.Normal
+            )
+        }
+        
+        Text(
+            text = "Score: ${record.score}",
+            fontSize = 17.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.White.copy(alpha = 0.9f),
+            modifier = Modifier.weight(1f),
+            textAlign = TextAlign.Center
+        )
+        
         Text(
             text = record.difficulty,
-            fontSize = 14.sp,
+            fontSize = 16.sp,
             color = when(record.difficulty) {
                 "Easy" -> Color(0xFF4CAF50)
                 "Medium" -> Color(0xFFFF9800)
                 "Hard" -> Color(0xFFF44336)
-                else -> Color.Black
+                else -> Color.White
             },
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.weight(0.7f),
+            textAlign = TextAlign.End
         )
     }
 }
